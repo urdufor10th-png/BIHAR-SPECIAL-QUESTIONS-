@@ -92,17 +92,48 @@
       background-color: #e53935;
     }
 
-    /* Screen par OTP dikhane wala box */
-    #otp-screen-display {
+    /* REAL IN-PAGE POPUP MODAL (100% Browser/GitHub Compatible) */
+    .modal-overlay {
       display: none;
-      margin-top: 15px;
-      padding: 15px;
-      background-color: #e8f5e9;
-      border: 3px solid #2e7d32;
-      border-radius: 8px;
-      color: #1b5e20;
-      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #ffffff;
+      padding: 35px;
+      border-radius: 15px;
+      max-width: 600px;
+      width: 90%;
       text-align: center;
+      border: 4px solid #2e7d32;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .otp-code-highlight {
+      font-size: 55px;
+      color: #b71c1c;
+      font-weight: bold;
+      letter-spacing: 5px;
+      margin: 20px 0;
+      padding: 10px;
+      background: #ffebee;
+      border: 2px dashed #b71c1c;
+      border-radius: 8px;
+      display: inline-block;
     }
 
     #form-error {
@@ -152,7 +183,7 @@
       vertical-align: middle;
     }
 
-    /* Sahi / Galat Option Highlights */
+    /* Option Highlighting */
     .option-label.correct-opt {
       background-color: #c8e6c9 !important;
       border-color: #2e7d32 !important;
@@ -212,13 +243,24 @@
 </head>
 <body>
 
+<!-- REAL POP-UP WINDOW (Modal) -->
+<div class="modal-overlay" id="otpModal">
+  <div class="modal-content">
+    <h3 style="color: #2e7d32; margin-top: 0;">📱 सत्यापन कोड (OTP)</h3>
+    <p style="font-size: 30px; margin: 10px 0;">आपका 4 अंकों का सुरक्षा कोड:</p>
+    <div class="otp-code-highlight" id="modalOtpValue">----</div>
+    <p style="font-size: 26px; color: #555;">कृपया यह कोड नीचे दिए गए OTP बॉक्स में दर्ज करें।</p>
+    <button type="button" class="btn" style="background-color: #2e7d32; font-size: 30px; padding: 10px 30px;" onclick="closeOtpModal()">कोड समझ गया / ठीक है</button>
+  </div>
+</div>
+
 <div class="container">
   <!-- Motivation Quote -->
   <div class="motivation">
     "मेहनत इतनी खामोशी से करो कि सफलता शोर मचा दे। अपने लक्ष्य पर अडिग रहो, जीत निश्चित है!"
   </div>
 
-  <!-- Registration Form (Bina Email ke) -->
+  <!-- Registration Form -->
   <div id="registration-section">
     <h2 style="text-align: center; color: #b71c1c; margin-top: 0;">परीक्षार्थी पंजीकरण (Student Registration)</h2>
     <form id="regForm" onsubmit="handleRegistration(event)">
@@ -233,13 +275,11 @@
       </div>
 
       <div class="form-group">
-        <button type="button" class="btn" style="font-size: 30px; padding: 10px 22px; background-color: #1565c0;" onclick="sendDynamicOTP()">OTP प्राप्त करें</button>
-        <!-- On-Screen OTP Box -->
-        <div id="otp-screen-display"></div>
+        <button type="button" class="btn" style="font-size: 30px; padding: 10px 22px; background-color: #1565c0;" onclick="openOtpModal()">OTP प्राप्त करें</button>
       </div>
 
       <div class="form-group" id="otp-group" style="display: none;">
-        <label for="otp" style="color: #b71c1c;">ऊपर दिखाया गया OTP यहाँ दर्ज करें:</label>
+        <label for="otp" style="color: #b71c1c;">पॉप-अप में दिखाया गया OTP यहाँ दर्ज करें:</label>
         <input type="text" id="otp" placeholder="4 अंकों का OTP डालें">
       </div>
 
@@ -276,33 +316,35 @@
   let timerInterval = null;
   let isQuizSubmitted = false;
 
-  // On-Screen Live OTP Function
-  function sendDynamicOTP() {
+  // Real In-Page Popup Window Trigger
+  function openOtpModal() {
     const mobile = document.getElementById("mobile").value.trim();
-    const otpDisplay = document.getElementById("otp-screen-display");
     const errorDisplay = document.getElementById("form-error");
 
     errorDisplay.style.display = "none";
 
     if (mobile.length !== 10 || isNaN(mobile)) {
-      otpDisplay.style.display = "block";
-      otpDisplay.style.backgroundColor = "#ffebee";
-      otpDisplay.style.borderColor = "#c62828";
-      otpDisplay.style.color = "#b71c1c";
-      otpDisplay.innerText = "कृपया पहले सही 10 अंकों का मोबाइल नंबर ऊपर दर्ज करें!";
+      errorDisplay.style.display = "block";
+      errorDisplay.innerText = "❌ कृपया पहले सही 10 अंकों का मोबाइल नंबर दर्ज करें!";
       return;
     }
 
-    // 4-Digit Unique Random OTP
+    // 4-Digit Unique Code Generate
     generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    
-    document.getElementById("otp-group").style.display = "block";
 
-    otpDisplay.style.display = "block";
-    otpDisplay.style.backgroundColor = "#e8f5e9";
-    otpDisplay.style.borderColor = "#2e7d32";
-    otpDisplay.style.color = "#1b5e20";
-    otpDisplay.innerHTML = `सत्यापन कोड (OTP): <span style="font-size: 42px; text-decoration: underline;">${generatedOtp}</span><br><span style="font-size: 26px;">कृपया इस 4 अंकों के कोड को नीचे वाले बॉक्स में लिखें।</span>`;
+    // Modal ke andar OTP daalna
+    document.getElementById("modalOtpValue").innerText = generatedOtp;
+
+    // In-page Popup Window Show
+    document.getElementById("otpModal").style.display = "flex";
+
+    // Neeche ka input box open
+    document.getElementById("otp-group").style.display = "block";
+  }
+
+  function closeOtpModal() {
+    document.getElementById("otpModal").style.display = "none";
+    document.getElementById("otp").focus();
   }
 
   function handleRegistration(e) {
@@ -319,7 +361,7 @@
 
     if (enteredOtp !== generatedOtp) {
       errorDisplay.style.display = "block";
-      errorDisplay.innerText = "❌ गलत OTP! स्क्रीन पर दिखाया गया सही 4 अंकों का कोड दर्ज करें।";
+      errorDisplay.innerText = "❌ गलत OTP! पॉप-अप में दिखाया गया सही 4 अंकों का कोड दर्ज करें।";
       return;
     }
 
@@ -566,4 +608,311 @@
       q: "36. भगवान महावीर का जन्म बिहार में कहाँ हुआ था?",
       options: ["पावापुरी", "कुण्डग्राम (वैशाली)", "लुंबिनी", "बोधगया"],
       correct: 1,
-      exp: "व्याख्या: 24वें तीर्थंकर भगवान महावीर का जन्म 540 ईसा पूर्व में वैशाली के निकट कुण्डग्राम
+      exp: "व्याख्या: 24वें तीर्थंकर भगवान महावीर का जन्म 540 ईसा पूर्व में वैशाली के निकट कुण्डग्राम के ज्ञातृक कुल में हुआ था।"
+    },
+    {
+      q: "37. भगवान महावीर को निर्वाण (मोक्ष) कहाँ प्राप्त हुआ था?",
+      options: ["कुशीनगर", "पावापुरी", "राजगृह", "चंपा"],
+      correct: 1,
+      exp: "व्याख्या: नालंदा जिले के पावापुरी में 72 वर्ष की आयु में महावीर स्वामी को कैवल्य/निर्वाण की प्राप्ति हुई जहां जलमंदिर स्थित है।"
+    },
+    {
+      q: "38. गौतम बुद्ध को ज्ञान की प्राप्ति किस नदी के तट पर हुई थी?",
+      options: ["गंगा", "सोन", "निरंजना (फल्गु)", "गंडक"],
+      correct: 2,
+      exp: "व्याख्या: बोधगया में निरंजना नदी के तट पर एक पीपल वृक्ष के नीचे 35 वर्ष की अवस्था में सिद्धार्थ को बुद्धत्व प्राप्त हुआ।"
+    },
+    {
+      q: "39. प्राचीन महाजनपद 'मगध' की प्रथम राजधानी कौन सी थी?",
+      options: ["पाटलिपुत्र", "वैशाली", "गिरिव्रज (राजगृह)", "चंपा"],
+      correct: 2,
+      exp: "व्याख्या: मगध साम्राज्य की प्रारंभिक राजधानी पाँच पहाड़ियों से घिरी गिरिव्रज (राजगृह) थी।"
+    },
+    {
+      q: "40. अंग महाजनपद की राजधानी कहाँ स्थित थी?",
+      options: ["चंपा", "वाराणसी", "कौशांबी", "श्रावस्ती"],
+      correct: 0,
+      exp: "व्याख्या: वर्तमान भागलपुर और मुंगेर जिलों के क्षेत्र पर विस्तृत अंग राज्य की राजधानी चंपा (मालिनी) थी।"
+    },
+    {
+      q: "41. विश्व का पहला गणतंत्र (Republic) कहाँ स्थापित हुआ था?",
+      options: ["एथेंस", "स्पार्टा", "वैशाली", "पाटलिपुत्र"],
+      correct: 2,
+      exp: "व्याख्या: ईसा पूर्व छठी शताब्दी में वैशाली के लिच्छवियों ने विश्व का प्रथम लोकतांत्रिक/गणतंत्रात्मक संघ स्थापित किया था।"
+    },
+    {
+      q: "42. कौटिल्य (चाणक्य) किसके प्रधानमंत्री थे?",
+      options: ["चन्द्रगुप्त मौर्य", "बिन्दुसार", "अशोक", "हर्षवर्धन"],
+      correct: 0,
+      exp: "व्याख्या: चाणक्य ने नंद वंश को उखाड़ फेंकने में चन्द्रगुप्त मौर्य की सहायता की और उनके प्रधानमंत्री एवं प्रधान सलाहकार बने।"
+    },
+    {
+      q: "43. 'अर्थशास्त्र' पुस्तक के लेखक कौटिल्य का संबंध किस प्राचीन विश्वविद्यालय से था?",
+      options: ["नालंदा", "तक्षशिला", "विक्रमशिला", "वल्लभी"],
+      correct: 1,
+      exp: "व्याख्या: चाणक्य गांधार स्थित प्राचीन तक्षशिला विश्वविद्यालय में राजनीति और अर्थशास्त्र के आचार्य थे।"
+    },
+    {
+      q: "44. मौर्य साम्राज्य के दरबार में यूनानी राजदूत मेगस्थनीज को किसने भेजा था?",
+      options: ["सिकंदर", "सेल्युकस निकेटर", "डेमेट्रियस", "टॉलेमी"],
+      correct: 1,
+      exp: "व्याख्या: सेल्युकस ने 305 ई.पू. संधि के पश्चात मेगस्थनीज को पाटलिपुत्र में चन्द्रगुप्त मौर्य के दरबार में भेजा था।"
+    },
+    {
+      q: "45. पाटलिपुत्र के नगर प्रशासन का वर्णन मेगस्थनीज की किस पुस्तक में मिलता है?",
+      options: ["इंडिका", "मुद्राराक्षस", "अर्थशास्त्र", "राजतरंगिणी"],
+      correct: 0,
+      exp: "व्याख्या: मेगस्थनीज की पुस्तक 'इंडिका' में पाटलिपुत्र के नगर प्रशासन के लिए 6 समितियों (प्रत्येक में 5 सदस्य) का उल्लेख है।"
+    },
+    {
+      q: "46. सम्राट अशोक के शिलालेखों में मुख्य रूप से किस भाषा और लिपि का प्रयोग हुआ है?",
+      options: ["संस्कृत व देवनागरी", "प्राकृत व ब्राह्मी", "पाली व खरोष्ठी", "अर्धमागधी"],
+      correct: 1,
+      exp: "व्याख्या: अशोक के अधिकांश भारतीय शिलालेख प्राकृत भाषा और ब्राह्मी लिपि में उत्कीर्ण हैं।"
+    },
+    {
+      q: "47. शेरशाह सूरी का प्रसिद्ध मकबरा बिहार में कहाँ स्थित है?",
+      options: ["पटना", "सासाराम", "रोहतासगढ़", "मनेर"],
+      correct: 1,
+      exp: "व्याख्या: सासाराम (रोहतास) में एक कृत्रिम झील के बीचो-बीच अष्टकोणीय लाल बलुआ पत्थर से बना शेरशाह का मकबरा स्थित है।"
+    },
+    {
+      q: "48. पटना शहर को 'अजीमाबाद' नाम किसने दिया था?",
+      options: ["औरंगजेब", "राजकुमार अजीम-उस-शान", "शाह आलम द्वितीय", "फर्रुखसियर"],
+      correct: 1,
+      exp: "व्याख्या: 1704 में मुगल सूबेदार एवं औरंगजेब के पोते शहजादा अजीम-उस-शान ने पटना का नाम बदलकर अजीमाबाद किया था।"
+    },
+    {
+      q: "49. 1764 में ऐतिहासिक बक्सर का युद्ध किसके-किसके बीच लड़ा गया था?",
+      options: ["मीर कासिम की संयुक्त सेना और हेक्टर मुनरो", "सिराजुद्दौला और रॉबर्ट क्लाइव", "टीपू सुल्तान और वारेन हेस्टिंग्स", "मराठा और अहमद शाह अब्दाली"],
+      correct: 0,
+      exp: "व्याख्या: 22 अक्टूबर 1764 को मीर कासिम, शुजाउद्दौला और शाह आलम द्वितीय की संयुक्त सेना को मेजर हेक्टर मुनरो के नेतृत्व वाली ब्रिटिश सेना ने हराया।"
+    },
+    {
+      q: "50. 'इलाहाबाद की संधि' (1765) के तहत अंग्रेजों को बिहार, बंगाल और उड़ीसा की क्या प्राप्त हुई?",
+      options: ["सैन्य कमान", "दीवानी अधिकार", "न्यायिक पद", "सूबेदारी"],
+      correct: 1,
+      exp: "व्याख्या: शाह आलम द्वितीय ने ईस्ट इंडिया कंपनी को 26 लाख रुपये वार्षिक पेंशन के बदले बिहार, बंगाल व उड़ीसा की दीवानी (राजस्व वसूली) सौंप दी।"
+    },
+    {
+      q: "51. बिहार में 'वहाबी आंदोलन' का प्रमुख केंद्र कौन सा शहर था?",
+      options: ["मुंगेर", "पटना", "भागलपुर", "गया"],
+      correct: 1,
+      exp: "व्याख्या: 19वीं सदी में सैयद अहमद बरेलवी द्वारा शुरू किए गए वहाबी आंदोलन का सबसे प्रमुख संगठनात्मक केंद्र पटना था।"
+    },
+    {
+      q: "52. 1857 के विद्रोह के समय पटना में क्रांति का नेतृत्व किसने किया था?",
+      options: ["पीर अली", "अमर सिंह", "विलायत अली", "इनायत अली"],
+      correct: 0,
+      exp: "व्याख्या: 3 जुलाई 1857 को पटना के पुस्तक विक्रेता पीर अली ने अंग्रेजों के विरुद्ध विद्रोह का झंडा बुलंद किया था।"
+    },
+    {
+      q: "53. बिहार में 'होम रूल लीग' की स्थापना दिसंबर 1916 में किसकी अध्यक्षता में हुई थी?",
+      options: ["मौलाना मजहरुल हक", "सरफराज हुसैन खां", "पूर्णेंदु नारायण सिन्हा", "चंद्रवंशी सहाय"],
+      correct: 0,
+      exp: "व्याख्या: 16 दिसंबर 1916 को बांकीपुर (पटना) में मौलाना मजहरुल हक की अध्यक्षता में बिहार होमरूल लीग गठित हुई।"
+    },
+    {
+      q: "54. भारतीय राष्ट्रीय कांग्रेस का 27वां अधिवेशन (1912) बिहार में कहाँ हुआ था?",
+      options: ["गया", "बांकीपुर (पटना)", "रामगढ़", "भागलपुर"],
+      correct: 1,
+      exp: "व्याख्या: 1912 में बांकीपुर (पटना) में कांग्रेस का पहला बिहार अधिवेशन हुआ, जिसके अध्यक्ष आर.एन. माधोलकर थे।"
+    },
+    {
+      q: "55. वर्ष 1922 का कांग्रेस का गया अधिवेशन किसकी अध्यक्षता में आयोजित हुआ था?",
+      options: ["चितरंजन दास", "मोतीलाल नेहरू", "हकीम अजमल खां", "लाला लाजपत राय"],
+      correct: 0,
+      exp: "व्याख्या: देशबंधु चितरंजन दास ने गया कांग्रेस अधिवेशन (1922) की अध्यक्षता की थी, जहां परिषदों में प्रवेश के मुद्दे पर विवाद हुआ।"
+    },
+    {
+      q: "56. बिहार में 'नमक सत्याग्रह' सर्वप्रथम किन जिलों में शुरू हुआ था?",
+      options: ["पटना व गया", "चंपारण व सारण", "मुंगेर व भागलपुर", "दरभंगा व मधुबनी"],
+      correct: 1,
+      exp: "व्याख्या: 15 अप्रैल 1930 को चंपारण और सारण जिलों में नमकीन मिट्टी से नमक बनाकर नमक कानून तोड़ा गया।"
+    },
+    {
+      q: "57. सविनय अवज्ञा आंदोलन के दौरान बिहार में कौन सा प्रमुख कर न देने का आंदोलन चला?",
+      options: ["भू-राजस्व कर", "चौकीदारी कर", "आयकर", "सीमा शुल्क"],
+      correct: 1,
+      exp: "व्याख्या: समुद्र तट न होने के कारण बिहार में सविनय अवज्ञा आंदोलन का मुख्य जोर चौकीदारी टैक्स बंदी पर केंद्रित था।"
+    },
+    {
+      q: "58. बिहार सोशलिस्ट पार्टी की औपचारिक स्थापना 1934 में कहाँ हुई थी?",
+      options: ["सदाकत आश्रम", "अंजुमन इस्लामिया हॉल, पटना", "टाउन हॉल मुजफ्फरपुर", "गांधी मैदान"],
+      correct: 1,
+      exp: "व्याख्या: पटना के अंजुमन इस्लामिया हॉल में नरेंद्र देव की अध्यक्षता और जयप्रकाश नारायण के सचिवत्व में यह पार्टी बनी।"
+    },
+    {
+      q: "59. 'भारत छोड़ो आंदोलन' (1942) के दौरान हजारीबाग जेल से भागकर भूमिगत आंदोलन किसने चलाया?",
+      options: ["डॉ. राजेंद्र प्रसाद", "जयप्रकाश नारायण", "रामवृक्ष बेनीपुरी", "योगेंद्र शुक्ल"],
+      correct: 1,
+      exp: "व्याख्या: दीवाली की रात जयप्रकाश नारायण साथियों सहित हजारीबाग जेल फांदकर नेपाल पहुंचे और वहां 'आजाद दस्ता' संगठित किया।"
+    },
+    {
+      q: "60. 11 अगस्त 1942 को पटना सचिवालय गोलीकांड में कितने छात्र शहीद हुए थे?",
+      options: ["5", "7", "9", "11"],
+      correct: 1,
+      exp: "व्याख्या: पटना सचिवालय पर तिरंगा फहराते समय जिलाधिकारी डब्ल्यू. जी. आर्चर के आदेश पर पुलिस फायरिंग में 7 छात्र शहीद हुए।"
+    },
+    {
+      q: "61. बिहार के किस जिले को स्वतंत्रता आंदोलन के दौरान 'अपराधी जिला' घोषित किया गया था?",
+      options: ["सारण", "मुंगेर", "भोजपुर", "गया"],
+      correct: 0,
+      exp: "व्याख्या: 1942 के भारत छोड़ो आंदोलन के उग्र विरोध प्रदर्शनों के कारण अंग्रेजों ने सारण जिले को 'अपराधी जिला' घोषित किया था।"
+    },
+    {
+      q: "62. भारत के प्रथम राष्ट्रपति डॉ. राजेंद्र प्रसाद का जन्म बिहार के किस गाँव में हुआ था?",
+      options: ["जीरादेई", "सिताब दियारा", "मुरली भरहवा", "हथुआ"],
+      correct: 0,
+      exp: "व्याख्या: डॉ. राजेंद्र प्रसाद का जन्म 3 दिसंबर 1884 को सीवान जिले के जीरादेई गांव में हुआ था।"
+    },
+    {
+      q: "63. 'लोकनायक' की उपाधि किसे दी गई है?",
+      options: ["कर्पूरी ठाकुर", "जयप्रकाश नारायण", "अनुग्रह नारायण सिंह", "स्वामी सहजानंद"],
+      correct: 1,
+      exp: "व्याख्या: 1974 के संपूर्ण क्रांति आंदोलन के प्रणेता जयप्रकाश नारायण को जनता ने 'लोकनायक' की उपाधि दी।"
+    },
+    {
+      q: "64. 'जननायक' के नाम से किन्हें जाना जाता है?",
+      options: ["कर्पूरी ठाकुर", "श्रीकृष्ण सिंह", "सच्चिदानंद सिन्हा", "भोला पासवान शास्त्री"],
+      correct: 0,
+      exp: "व्याख्या: गरीबों और वंचितों के उत्थान के लिए समर्पित बिहार के पूर्व मुख्यमंत्री कर्पूरी ठाकुर को 'जननायक' कहा जाता है।"
+    },
+    {
+      q: "65. संविधान सभा के प्रथम अस्थायी अध्यक्ष डॉ. सच्चिदानंद सिन्हा बिहार के किस जिले से थे?",
+      options: ["भोजपुर (आरा)", "पटना", "बक्सर", "नालंदा"],
+      correct: 0,
+      exp: "व्याख्या: 9 दिसंबर 1946 को संविधान सभा के सबसे वरिष्ठ सदस्य डॉ. सच्चिदानंद सिन्हा (मूल निवासी आरा, भोजपुर) अस्थायी अध्यक्ष चुने गए थे।"
+    },
+    {
+      q: "66. बिहार में गंगा नदी की कुल लंबाई कितनी है?",
+      options: ["2525 किमी", "445 किमी", "512 किमी", "380 किमी"],
+      correct: 1,
+      exp: "व्याख्या: गंगा नदी बिहार में बक्सर जिले के चौसा से प्रवेश करती है और कटिहार से निकलती है; बिहार में इसकी लंबाई 445 किमी है।"
+    },
+    {
+      q: "67. गंगा नदी बिहार के कितने जिलों से होकर प्रवाहित होती है?",
+      options: ["10", "12", "14", "16"],
+      correct: 1,
+      exp: "व्याख्या: गंगा नदी बिहार के कुल 12 जिलों (बक्सर, भोजपुर, सारण, पटना, वैशाली, समस्तीपुर, बेगूसराय, लखीसराय, मुंगेर, खगड़िया, भागलपुर, कटिहार) से गुजरती है।"
+    },
+    {
+      q: "68. गंगा नदी की बिहार में सबसे लंबी सीमा किस जिले में है?",
+      options: ["भागलपुर", "पटना", "कटिहार", "बेगूसराय"],
+      correct: 1,
+      exp: "व्याख्या: पटना जिले में गंगा नदी की लंबाई सबसे अधिक (लगभग 99 किमी) है।"
+    },
+    {
+      q: "69. 'कांवर झील' पक्षी अभयारण्य (Ramsar Site) बिहार के किस जिले में स्थित है?",
+      options: ["दरभंगा", "बेगूसराय", "कटिहार", "सहरसा"],
+      correct: 1,
+      exp: "व्याख्या: बेगूसराय की कांवर झील एशिया की सबसे बड़ी गोखुर (Ox-bow) मीठे पानी की झील है और यह बिहार का पहला रामसर स्थल है।"
+    }
+  ];
+
+  function loadQuestions() {
+    const container = document.getElementById("questions-container");
+    container.innerHTML = "";
+
+    quizData.forEach((item, qIndex) => {
+      const qDiv = document.createElement("div");
+      qDiv.className = "question-block";
+
+      const qTitle = document.createElement("div");
+      qTitle.className = "question-text";
+      qTitle.innerText = item.q;
+      qDiv.appendChild(qTitle);
+
+      item.options.forEach((opt, optIndex) => {
+        const label = document.createElement("label");
+        label.className = "option-label";
+        label.id = `opt-label-${qIndex}-${optIndex}`;
+        label.innerHTML = `
+          <input type="radio" name="q${qIndex}" value="${optIndex}" onchange="checkAnswerInstantly(${qIndex}, ${optIndex})">
+          ${String.fromCharCode(65 + optIndex)}. ${opt}
+        `;
+        qDiv.appendChild(label);
+      });
+
+      const expBox = document.createElement("div");
+      expBox.id = `exp-box-${qIndex}`;
+      expBox.className = "explanation-box";
+      qDiv.appendChild(expBox);
+
+      container.appendChild(qDiv);
+    });
+  }
+
+  function checkAnswerInstantly(qIndex, selectedOptIndex) {
+    if (isQuizSubmitted) return;
+
+    const currentQ = quizData[qIndex];
+    const expBox = document.getElementById(`exp-box-${qIndex}`);
+    const correctIndex = currentQ.correct;
+
+    const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
+    radios.forEach(r => r.disabled = true);
+
+    const isCorrect = (selectedOptIndex === correctIndex);
+
+    const selectedLabel = document.getElementById(`opt-label-${qIndex}-${selectedOptIndex}`);
+    const correctLabel = document.getElementById(`opt-label-${qIndex}-${correctIndex}`);
+
+    if (isCorrect) {
+      selectedLabel.classList.add("correct-opt");
+      expBox.className = "explanation-box show success";
+      expBox.innerHTML = `
+        <div class="exp-title">✓ आपका उत्तर सही है!</div>
+        <div>${currentQ.exp}</div>
+      `;
+    } else {
+      selectedLabel.classList.add("wrong-opt");
+      correctLabel.classList.add("correct-opt");
+      expBox.className = "explanation-box show fail";
+      expBox.innerHTML = `
+        <div class="exp-title">✗ आपका उत्तर गलत है! (सही उत्तर: विकल्प ${String.fromCharCode(65 + correctIndex)} - ${currentQ.options[correctIndex]})</div>
+        <div>${currentQ.exp}</div>
+      `;
+    }
+  }
+
+  function finishQuiz(isAutoSubmit) {
+    if (isQuizSubmitted) return;
+    isQuizSubmitted = true;
+
+    clearInterval(timerInterval);
+
+    let score = 0;
+    quizData.forEach((item, qIndex) => {
+      const selected = document.querySelector(`input[name="q${qIndex}"]:checked`);
+      if (selected && parseInt(selected.value) === item.correct) {
+        score++;
+      }
+      if (!selected) {
+        const expBox = document.getElementById(`exp-box-${qIndex}`);
+        const correctLabel = document.getElementById(`opt-label-${qIndex}-${item.correct}`);
+        correctLabel.classList.add("correct-opt");
+        expBox.className = "explanation-box show fail";
+        expBox.innerHTML = `
+          <div class="exp-title">⚠️ अनुत्तरित (सही उत्तर: विकल्प ${String.fromCharCode(65 + item.correct)} - ${item.options[item.correct]})</div>
+          <div>${item.exp}</div>
+        `;
+      }
+    });
+
+    document.querySelectorAll("input[type=radio]").forEach(r => r.disabled = true);
+    document.getElementById("manualSubmitBtn").style.display = "none";
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.style.display = "block";
+    resultDiv.innerHTML = `
+      <div>${isAutoSubmit ? "⏰ समय समाप्त!" : "🎉 टेस्ट सफलतापूर्व समाप्त!"}</div>
+      <div style="margin-top: 10px;">आपका कुल प्राप्तांक: ${score} / ${quizData.length}</div>
+    `;
+
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
